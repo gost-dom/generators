@@ -6,7 +6,7 @@ import (
 
 	"github.com/dave/jennifer/jen"
 	. "github.com/onsi/gomega"
-	. "github.com/gost-dom/browser/code-gen/generators"
+	. "github.com/gost-dom/code-gen/generators"
 )
 
 func generatePackage(packageName string, generator Generator) (string, error) {
