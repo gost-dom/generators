@@ -1,16 +1,9 @@
 # Generators
 
-This package is part of the [Go-DOM](https://github.com/stroiman/go-dom) to
+This package is part of the [Gost](https://github.com/gost-dom) to
 support code generation from web specification IDL files.
 
 However, the code is of general use, and exposed publicly.
-
-> [!WARNING]
->
-> This package is part of the code generator itself, which is of no interest
-> outside Go-DOM, and makes no guarantees about backwards compatibility.
->
-> If you find it useful, I suggest copy/paste the code to your own project.
 
 > [!NOTE]
 >
@@ -20,11 +13,11 @@ However, the code is of general use, and exposed publicly.
 
 This library is a wrapper on top of [Jennifer](https://github.com/dave/jennifer)
 
-Jennifer is a comprehensive library for generating go code generators, but I did
-not agree with the design choices in the interface.
+Jennifer is a comprehensive library for generating go code generators, but there
+are design decisions I would have made differently
 
-- Jennifer has an imperative API, i.e. it mutates values
-- IMHO, the API Jennifer exposes is too low-level
+- Expose a more declarative API
+- Expose a higher level of abstraction
 
 ### Declarative vs. Imperative
 
@@ -33,12 +26,13 @@ fact, this problem is very similar to building a UI. Modern web frameworks
 generally compose high level components of low level components, each component
 being a function of state.
 
-Jennifer however, is designed around mutation.
+Jennifer often mutatas values, making individual values difficult to reuse in
+different contexts
 
 ### Level of abstraction
 
 Jennifer has a model centered around the output tokens generated in code, e.g.
-there is a `Func` representing the `func` keyword. But the keword has different
+the function `Func` generating the `func` keyword. But the keword has different
 uses.
 
 - Declaring a function type
@@ -49,17 +43,18 @@ Likewise, `*` is created using `Op("*")`, but this has multiple uses as well:
 - Declaring a pointer type
 - Dereferencing a pointer variable
 
-`Index` represents `[]`, which can be used to index a slice or map, as well as
-providing a type parameter to a generic type or function.
+And those are just two examples.
 
-This library tries to focus on what the code should do, not the pieces that they
-are constructed of, and uses an abstraction level of "Variable assignment",
+This library tries to focus on what the code should do, not the tokens in the
+generated source file. It uses abstractions like "Variable assignment",
 "Pointer", "Reference", "Equals", rather than `Op(":=")`, `Op("*")`, `Op("&")`,
 `Op("==")`.
 
 If `t` is a `Type` representing a type in code, `t.Pointer()` represents the
 pointer type to that type. If `v` is a `Value` representing an value, e.g., an
-identifier, a struct literal, `t.Reference()` gives the reference to the value.
+identifier, a struct literal, `t.Reference()` generates to to get a reference to
+the value.
+
 
 ## Examples
 
@@ -104,25 +99,6 @@ IfStmt{
 }
 ```
 
-### Escape Hatch
-
-Not everything is supported. To deal with that, the `Raw` generator can wrap a
-native Jennifer statement. E.g., at the moment, `append` is not supported, so
-here `Raw` is used:
-
-```Go
-items := NewValue("items")
-item := NewValue("item")
-functionBody := StatementList(
-    Assign(item, NewValue("NewItem").Call()),
-    Reassign(items,
-        Raw(jen.Append(items.Generate(), item.Generate())),
-    ),
-)
-// Generates
-// item := NewItem()
-// items = append(items, item)
-```
 
 > [!NOTE]
 >
@@ -143,6 +119,19 @@ func WriteGenerator(g Generator, w io.Writer) (error) {
     file.Add(generator.Generate())
     return file.Render(w)
 }
+```
+
+## It's a transparent layer (with an escape hatch)
+
+This library does not try hide Jennifer, and the two can easily be intermixed.
+
+Want to use a generator with Jennifer? Just call `Generate()`. To use a jennifer
+value as a Generator, you can use the function `Raw`.
+
+```
+fooAsJenStmt := jen.Id("foo")
+fooAsGenerator := generators.Raw(j)
+fooRefAsJen := jen.Op("&").Add(fooAsGenerator.Generate())
 ```
 
 ## Philosophy: Embrace composition
