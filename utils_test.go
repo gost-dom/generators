@@ -5,7 +5,7 @@ import (
 
 	"github.com/onsi/gomega"
 	. "github.com/onsi/gomega"
-	. "github.com/gost-dom/code-gen/generators"
+	. "github.com/gost-dom/generators"
 )
 
 func TestGenerateReceiverName(t *testing.T) {
