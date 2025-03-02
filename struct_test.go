@@ -5,8 +5,9 @@ import (
 	"testing"
 
 	"github.com/dave/jennifer/jen"
-	. "github.com/onsi/gomega"
 	. "github.com/gost-dom/generators"
+	. "github.com/gost-dom/generators/testing/matchers"
+	. "github.com/onsi/gomega"
 )
 
 func generatePackage(packageName string, generator Generator) (string, error) {
@@ -17,21 +18,15 @@ func generatePackage(packageName string, generator Generator) (string, error) {
 	return builder.String(), err
 }
 
-func render(generator Generator) (string, error) {
-	builder := new(strings.Builder)
-	err := generator.Generate().Render(builder)
-	return builder.String(), err
-}
-
 func TestStructGenerator(t *testing.T) {
 	expect := NewWithT(t).Expect
 	s := NewStruct(Id("FooBar"))
-	expect(render(s)).To(Equal("type FooBar struct{}"))
+	expect(s).To(HaveRendered("type FooBar struct{}"))
 
 	s2 := NewStruct(Id("StructWithFields"))
 	s2.Field(Id("Name"), Id("string"))
 	s2.Field(Id("Age"), Id("int"))
-	expect(render(s2)).To(Equal(
+	expect(s2).To(HaveRendered(
 		`type StructWithFields struct {
 	Name string
 	Age  int
@@ -41,7 +36,7 @@ func TestStructGenerator(t *testing.T) {
 	s3.Embed(Id("EmbeddedType2"))
 	s3.Field(Id("StringValue"), Id("string"))
 	s3.Field(Id("IntValue"), Id("int"))
-	expect(render(s3)).To(Equal(
+	expect(s3).To(HaveRendered(
 		`type StructWithEmbeds struct {
 	EmbeddedType1
 	EmbeddedType2
@@ -58,7 +53,7 @@ func TestStructMethodGenerators(t *testing.T) {
 		Name: Id("str"),
 		Type: Id("string"),
 	}).WithReturnValue(Id("string")).WithBody(Return(Lit("Foo")))
-	expect(render(foo)).To(Equal(`func (rec *StructWithMembers) Foo(str string) string {
+	expect(foo).To(HaveRendered(`func (rec *StructWithMembers) Foo(str string) string {
 	return "Foo"
 }`))
 }
