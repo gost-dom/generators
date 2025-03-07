@@ -28,52 +28,61 @@ func (t Type) CreateInstance(values ...Generator) Value {
 	return Value{Raw(t.Generate().Values(ToJenCodes(values)...))}
 }
 
-func (t Type) InstanceBuilder() *StructInstanceBuilder {
-	return &StructInstanceBuilder{type_: t}
+func (t Type) Literal(options ...func(*StructLiteral)) *StructLiteral {
+	return &StructLiteral{Type: t}
 }
 
-type StructInstanceFieldInit struct {
-	Name  Generator
+// StructLiteralKeyElement generates an element with a key in a struct literal
+type StructLiteralKeyElement struct {
+	Key   Generator
 	Value Generator
 }
 
-func (i StructInstanceFieldInit) Generate() *jen.Statement {
-	return i.Name.Generate().Op(":").Add(i.Value.Generate())
+func (i StructLiteralKeyElement) Generate() *jen.Statement {
+	return i.Key.Generate().Op(":").Add(i.Value.Generate())
 }
 
-type StructInstanceBuilder struct {
-	type_     Type
-	Fields    []Generator
+// StructLiteral builds struct literals, i.e., statement that creates a struct
+// and initialises it with values.
+//
+// Type should be a Generator that generates an
+// identifier. Elements contain the values for all the elements.
+//
+// [KeyField] or [StructLiteralInstanceFieldInit] can be used to create a
+// generator for an element with a key.
+type StructLiteral struct {
+	Type      Generator
+	Elements  []Generator
 	MultiLine bool
 }
 
-func (b *StructInstanceBuilder) AppendField(f Generator) {
-	b.Fields = append(b.Fields, f)
+// Creates an element in the struct literal. Passing a generator that generates
+// an expression will create a field without a key.
+// [StructLiteral.KeyField] helps creating a field with a key.
+func (b *StructLiteral) Field(f Generator) {
+	b.Elements = append(b.Elements, f)
 }
 
-func (b *StructInstanceBuilder) AddNamedFieldString(name string, value Generator) {
-	b.AppendField(StructInstanceFieldInit{Id(name), value})
+// Creates an element with a key in the struct literal
+func (b *StructLiteral) KeyField(name Generator, value Generator) {
+	b.Field(StructLiteralKeyElement{name, value})
 }
 
-func (b *StructInstanceBuilder) AddNamedField(name Generator, value Generator) {
-	b.AppendField(StructInstanceFieldInit{name, value})
-}
-
-func (b *StructInstanceBuilder) Generate() *jen.Statement {
+func (b *StructLiteral) Generate() *jen.Statement {
 	var fields []Generator
 	if !b.MultiLine {
-		fields = b.Fields
+		fields = b.Elements
 	} else {
-		l := len(b.Fields)
+		l := len(b.Elements)
 		fields = make([]Generator, l+1)
-		for i, f := range b.Fields {
+		for i, f := range b.Elements {
 			fields[i] = Raw(jen.Line().Add(f.Generate()))
 		}
 		fields[l] = Line
 	}
-	return b.type_.Generate().Values(ToJenCodes(fields)...)
+	return b.Type.Generate().Values(ToJenCodes(fields)...)
 }
 
-func (b *StructInstanceBuilder) Value() Value {
+func (b *StructLiteral) Value() Value {
 	return Value{b}
 }

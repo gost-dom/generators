@@ -58,7 +58,7 @@ func (s *Struct) PointerMethodName(name string) *FunctionDefinition {
 func (s Struct) Generate() *jen.Statement {
 	fields := make([]jen.Code, 0, len(s.Members))
 	for _, m := range s.Members {
-		if (m.Name) == nil {
+		if m.Name == nil {
 			fields = append(fields, m.Type.Generate())
 		} else {
 			fields = append(fields, m.Name.Generate().Add(m.Type.Generate()))

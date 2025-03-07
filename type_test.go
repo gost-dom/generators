@@ -10,9 +10,9 @@ import (
 
 func TestGenerateStructInstanceWithNamedFields(t *testing.T) {
 	g := gomega.NewWithT(t)
-	b := NewType("MyType").InstanceBuilder()
-	b.AddNamedFieldString("StringField", Lit("string value"))
-	b.AddNamedFieldString("IntField", Lit(42))
+	b := NewType("MyType").Literal()
+	b.KeyField(Id("StringField"), Lit("string value"))
+	b.KeyField(Id("IntField"), Lit(42))
 
 	g.Expect(b).To(matchers.HaveRendered(`MyType{StringField: "string value", IntField: 42}`))
 

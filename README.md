@@ -85,6 +85,26 @@ return StatementList(
     )
 ```
 
+### Initialise struct instance
+
+```Go
+v := g.NewType("MyStruct")
+b := v.Literal()
+b.KeyField(g.Id("StringField"), g.Lit("String value"))
+b.KeyField(g.Id("NumField"), g.Lit(42))
+
+Render(b)
+// MyStruct{StringField: "String value", NumField: 42}
+Render(b.Value().Reference())
+// &MyStruct{StringField: "String value", NumField: 42}
+b.Multiline = true
+Render(b)
+//  MyStruct{
+//      StringField: "String value",
+//      NumField: 42,
+//  }
+```
+
 ### Conditions
 
 Simple `if`/`else` is implemented by `IfStmt`. `Eq` and `Neq` provides `==` and
