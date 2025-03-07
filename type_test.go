@@ -1,0 +1,23 @@
+package generators_test
+
+import (
+	"testing"
+
+	. "github.com/gost-dom/generators"
+	"github.com/gost-dom/generators/testing/matchers"
+	"github.com/onsi/gomega"
+)
+
+func TestGenerateStructInstanceWithNamedFields(t *testing.T) {
+	g := gomega.NewWithT(t)
+	b := NewType("MyType").InstanceBuilder()
+	b.AddNamedFieldString("StringField", Lit("string value"))
+	b.AddNamedFieldString("IntField", Lit(42))
+
+	g.Expect(b).To(matchers.HaveRendered(`MyType{StringField: "string value", IntField: 42}`))
+	b.MultiLine = true
+	g.Expect(b).To(matchers.HaveRendered(`MyType{
+	StringField: "string value",
+	IntField:    42,
+}`))
+}

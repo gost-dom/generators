@@ -27,3 +27,49 @@ func (t Type) TypeParam(g Generator) Value {
 func (t Type) CreateInstance(values ...Generator) Value {
 	return Value{Raw(t.Generate().Values(ToJenCodes(values)...))}
 }
+
+func (t Type) InstanceBuilder() *StructInstanceBuilder {
+	return &StructInstanceBuilder{type_: t}
+}
+
+type StructInstanceFieldInit struct {
+	Name  Generator
+	Value Generator
+}
+
+func (i StructInstanceFieldInit) Generate() *jen.Statement {
+	return i.Name.Generate().Op(":").Add(i.Value.Generate())
+}
+
+type StructInstanceBuilder struct {
+	type_     Type
+	Fields    []Generator
+	MultiLine bool
+}
+
+func (b *StructInstanceBuilder) AppendField(f Generator) {
+	b.Fields = append(b.Fields, f)
+}
+
+func (b *StructInstanceBuilder) AddNamedFieldString(name string, value Generator) {
+	b.AppendField(StructInstanceFieldInit{Id(name), value})
+}
+
+func (b *StructInstanceBuilder) AddNamedField(name Generator, value Generator) {
+	b.AppendField(StructInstanceFieldInit{name, value})
+}
+
+func (b *StructInstanceBuilder) Generate() *jen.Statement {
+	var fields []Generator
+	if !b.MultiLine {
+		fields = b.Fields
+	} else {
+		l := len(b.Fields)
+		fields = make([]Generator, l+1)
+		for i, f := range b.Fields {
+			fields[i] = Raw(jen.Line().Add(f.Generate()))
+		}
+		fields[l] = Line
+	}
+	return b.type_.Generate().Values(ToJenCodes(fields)...)
+}
