@@ -73,3 +73,7 @@ func (b *StructInstanceBuilder) Generate() *jen.Statement {
 	}
 	return b.type_.Generate().Values(ToJenCodes(fields)...)
 }
+
+func (b *StructInstanceBuilder) Value() Value {
+	return Value{b}
+}

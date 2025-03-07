@@ -15,6 +15,10 @@ func TestGenerateStructInstanceWithNamedFields(t *testing.T) {
 	b.AddNamedFieldString("IntField", Lit(42))
 
 	g.Expect(b).To(matchers.HaveRendered(`MyType{StringField: "string value", IntField: 42}`))
+
+	bRef := b.Value().Reference()
+	g.Expect(bRef).To(matchers.HaveRendered(`&MyType{StringField: "string value", IntField: 42}`))
+
 	b.MultiLine = true
 	g.Expect(b).To(matchers.HaveRendered(`MyType{
 	StringField: "string value",
