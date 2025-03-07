@@ -68,7 +68,7 @@ func (b *StructLiteral) KeyField(name Generator, value Generator) {
 	b.Field(StructLiteralKeyElement{name, value})
 }
 
-func (b *StructLiteral) Generate() *jen.Statement {
+func (b StructLiteral) Generate() *jen.Statement {
 	var fields []Generator
 	if !b.MultiLine {
 		fields = b.Elements
@@ -83,6 +83,6 @@ func (b *StructLiteral) Generate() *jen.Statement {
 	return b.Type.Generate().Values(ToJenCodes(fields)...)
 }
 
-func (b *StructLiteral) Value() Value {
+func (b StructLiteral) Value() Value {
 	return Value{b}
 }
